@@ -35,22 +35,45 @@
  <div id="meeting-dates">
     <h3>Mentor Meeting Dates</h3>
     <div id="meeting-date-list">
-      <div class="meeting-date">
-        <input type="date" name="meeting_dates[]" />
-      </div>
+    <% @teams.each do |team| %>
+    <div class="team-container <%= team.capacity < 50 ? 'under-capacity' : '' %>">
+    <h3><%= team.name %></h3>
+    <p>Mentor: <%= team.mentor.name %></p>
+    <p>Members: <%= team.members.map(&:name).join(', ') %></p>
+    
+    <div class="meeting-dates">
+      <h4>Meeting Dates</h4>
+      <% team.meeting_dates.each do |date| %>
+        <div class="meeting-date">
+          <input type="date" name="meeting_dates[<%= team.id %>][]" value="<%= date %>" 
+                 <%= 'disabled' if team.capacity < 50 %> />
+          <% if current_user.instructor? %>
+            <button type="button" onclick="removeMeetingDate(this)">Remove</button>
+          <% end %>
+        </div>
+      <% end %>
+      <button type="button" onclick="addMeetingDate(<%= team.id %>)"> + Add Meeting </button>
     </div>
-    <button type="button" id="add-meeting-date" onclick="addMeetingDate()"> + Add Meeting </button>
   </div>
-  
-  <%= render partial: '/shared_scripts/back' %>
+<% end %>
+
+<div class="user-info">
+  <h4>Current User: <%= current_user.name %> (<%= current_user.role %>)</h4>
 </div>
 
+<button type="submit">Save Changes</button>
+
 <script>
-  function addMeetingDate() {
-    const meetingDateList = document.getElementById('meeting-date-list');
+  function addMeetingDate(teamId) {
+    const meetingDateList = document.querySelector(`.team-container[data-team-id="${teamId}"] .meeting-dates`);
     const newMeetingDate = document.createElement('div');
     newMeetingDate.classList.add('meeting-date');
-    newMeetingDate.innerHTML = '<input type="date" name="meeting_dates[]" />';
+    newMeetingDate.innerHTML = `<input type="date" name="meeting_dates[${teamId}][]" />
+                                <button type="button" onclick="removeMeetingDate(this)">Remove</button>`;
     meetingDateList.appendChild(newMeetingDate);
+  }
+
+  function removeMeetingDate(button) {
+    button.parentElement.remove();
   }
 </script>
