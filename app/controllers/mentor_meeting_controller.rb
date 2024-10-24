@@ -1,16 +1,19 @@
 class MentorMeetingController < ApplicationController
   include MentorMeetingsHelper
 
+  before_action :set_team_and_meeting, only: [:edit_date, :delete_date]
+  
   # Method to get meeting dates for a particular assignment
   def get_dates
     @mentor_meetings = MentorMeeting.all
-    render json: @mentor_meetings
+    render json: @mentor_meetings, status::ok
   end
 
   # Method to add meetings dates to the mentor_meetings table.
   def add_date
-    team_id = params[:team_id]
-    meeting_date = params[:meeting_date]
+   meeting_dates_params.each do |team_id, dates|
+      dates.each do |date|
+        next if date.blank?
     @mentor_meeting = MentorMeeting.create(team_id: team_id, meeting_date: meeting_date)
     
     if @mentor_meeting.save
@@ -21,8 +24,6 @@ class MentorMeetingController < ApplicationController
     end
   end
   
-  
-
   def edit_date
     team_id = params[:team_id]
     old_meeting_date = params[:old_date]
@@ -58,6 +59,16 @@ class MentorMeetingController < ApplicationController
       render json: { status: 'error', message: 'Meeting not found' }
     end
   end
-  
 
+  private
+
+  def meeting_dates_params #permitting parameters through the model
+    params.require(:meeting_dates).permit(:team_id, :date)
+  end
+
+  def set_team_and_meeting #means by which a specific team meeting can be found based on its parameters
+    @meeting = MentorMeeting.find_by(team_id: params[:team_id].to_i, meeting_date: params[:meeting_date])
+    render json: { status: 'error', message: 'Meeting not found' }, status: :not_found unless @meeting
+  end
 end
+
