@@ -16,11 +16,10 @@ def add_date
   @mentor_meeting = MentorMeeting.create(team_id: team_id, meeting_date: meeting_date)
   
   if @mentor_meeting.save
-    # Trigger notification after saving
-    ActiveSupport::Notifications.instrument('mentor_meeting.created', team_id: team_id, meeting_date: meeting_date)
-    render json: { status: 'success', message: 'Meeting created successfully' }
+    MentorMeetingNotifications.send_notification(team_id, meeting_date)
+    render json: { status: 'success', message: "Meeting date added" }
   else
-    render json: { status: 'error', message: 'Failed to create meeting' }
+    render json: { status: 'error', message: "Unable to add meeting date" }
   end
 end
 
