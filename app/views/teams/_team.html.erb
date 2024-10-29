@@ -47,12 +47,12 @@
         <div class="meeting-date">
           <input type="date" name="meeting_dates[<%= team.id %>][]" value="<%= date %>" 
                  <%= 'disabled' if team.capacity < 50 %> />
-          <% if current_user.instructor? %>
+          <% if current_user.instructor? || current_user == team.mentor %> //current team mentor and instructor can remove
             <button type="button" onclick="removeMeetingDate(this)">Remove</button>
           <% end %>
         </div>
       <% end %>
-      <button type="button" onclick="addMeetingDate(<%= team.id %>)"> + Add Meeting </button>
+      <button type="button" onclick="addMeetingDate(<%= team.id %>)"> + </button>
     </div>
   </div>
 <% end %>
