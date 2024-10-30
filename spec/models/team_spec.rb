@@ -115,7 +115,7 @@ describe Team do
             expect(team.add_member(user)).to be true
         end
 
-        it 'sends mail to user if user is a user' do
+        it 'sends mail to user if the user is a participant only' do
             allow(MentorManagement).to receive(:user_a_mentor?).with(user).and_return(false)
             allow(Assignment).to receive(:find).with(1).and_return(assignment)
             allow(MailerHelper).to receive(:send_team_confirmation_mail_to_user).and_return(double('Mail', deliver: true))
@@ -124,6 +124,18 @@ describe Team do
           expect(team.add_member(user)).to be true
           
         end
+
+        it 'sends dual-role mail if the user is both a mentor and a participant' do
+          allow(MentorManagement).to receive(:user_a_mentor?).with(user).and_return(true)
+          allow(user).to receive(:is_a?).with(Participant).and_return(true)
+          allow(Assignment).to receive(:find).with(1).and_return(assignment)
+          allow(MailerHelper).to receive(:send_team_confirmation_mail_to_user).and_return(double('Mail', deliver: true))
+  
+          expect(MailerHelper).to receive(:send_team_confirmation_mail_to_user).with(user, "[Expertiza] Added to a Team", "dual_role_added_to_team", "#{team.name}", "").and_return(double('Mail', deliver: true))
+  
+          expect(team.add_member(user)).to be true
+        end
+        
       end
     end
   end
