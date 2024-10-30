@@ -91,14 +91,21 @@ class Team < ApplicationRecord
       
        # if assignment_id is nil, then don't send an assignment name
       assignment_name = _assignment_id ? Assignment.find(_assignment_id).name.to_s : ""
-      # Now that a new team member has been added to a team, send an email to them letting them know
-        if MentorManagement.user_a_mentor?(user)
+      
+      # addressing efg's comment in previous PR
+      # if just mentor
+      if MentorManagement.user_a_mentor?(user) && !user.is_a?(Participant)
         MailerHelper.send_team_confirmation_mail_to_user(user, "[Expertiza] Added to a Team", "mentor_added_to_team", "#{name}", assignment_name).deliver
-        elsif !user.is_a?(Participant)
-        # If the user is a participant, then we don't went to send them emails since that class is something
-        # completely out of the scope of this project
+
+      # only a participant
+      elsif !MentorManagement.user_a_mentor?(user) && user.is_a?(Participant)
         MailerHelper.send_team_confirmation_mail_to_user(user, "[Expertiza] Added to a Team", "user_added_to_team", "#{name}", assignment_name).deliver
-      end    
+
+      # both mentor and participant
+      elsif MentorManagement.user_a_mentor?(user) && user.is_a?(Participant)
+        MailerHelper.send_team_confirmation_mail_to_user(user, "[Expertiza] Added to a Team", "dual_role_added_to_team", "#{name}", assignment_name).deliver
+        
+      end
       
     end
     can_add_member
